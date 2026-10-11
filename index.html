@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>C.R.A.T.E.R. — Mission Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--amber:#ffb454;--teal:#4fd1c5;--panel:rgba(8,15,18,.86);--line:rgba(255,255,255,.09);--muted:#9fb0b5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:#04080a;color:#fff;font-family:Outfit,system-ui,sans-serif;line-height:1.4}
+#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;padding:24px 16px;background:rgba(4,9,11,.88);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:22px}
+.logo{font-weight:700;font-size:24px;letter-spacing:.08em;padding:0 8px}
+.logo span{color:var(--amber);margin-left:6px}
+nav{display:flex;flex-direction:column;gap:6px}
+.nav{all:unset;cursor:pointer;display:block;padding:12px 14px;border-radius:12px;border:1px solid transparent;color:#c9d4d7}
+.nav small{display:block;color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.nav b{font-weight:600;font-size:16px}
+.nav:hover{background:rgba(255,255,255,.05)}
+.nav.on{background:rgba(255,180,84,.12);border-color:rgba(255,180,84,.45);color:#fff}
+.stat{margin-top:auto;font-size:14px;color:var(--muted);padding:0 8px}
+.stat i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#43d98b;margin-right:8px;box-shadow:0 0 8px #43d98b}
+.main{padding:26px clamp(16px,3vw,40px) 50px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.top h1{margin:0;font-size:clamp(26px,3.4vw,38px);font-weight:600}
+.top p{margin:2px 0 0;color:var(--muted)}
+.actions{display:flex;gap:12px;align-items:center}
+.chip{padding:6px 14px;border-radius:99px;border:1px solid var(--line);color:var(--muted);font-size:13px;background:var(--panel)}
+button.go{background:var(--amber);color:#1a1205;border:0;border-radius:99px;padding:11px 20px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.kpi .l{color:var(--muted);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.kpi .v{font-size:42px;font-weight:700;line-height:1.15;margin-top:4px}
+.kpi.hot{border-color:rgba(255,180,84,.6);background:linear-gradient(135deg,rgba(255,180,84,.18),var(--panel))}
+.kpi.hot .v{color:var(--amber);font-size:54px}
+.g2{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:14px}
+.g2b{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:1000px){.g2,.g2b{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0}
+.panel h3{margin:0 0 10px;font-size:16px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.panel h3 em{font-style:normal;color:var(--muted);font-weight:400;font-size:13px}
+svg{width:100%;height:auto;display:block}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.badge{padding:2px 10px;border-radius:99px;background:rgba(79,209,197,.15);color:var(--teal);font-size:13px;font-weight:600}
+.nbcards{display:grid;gap:10px}
+.nbc{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+.nbc:hover{border-color:var(--amber)}
+.nbc b{display:block;font-size:16px}.nbc small{color:var(--muted)}
+.nbc .m{font-size:24px;font-weight:700;color:var(--amber)}
+.ph{border:2px dashed rgba(255,255,255,.2);border-radius:12px;padding:36px;text-align:center;color:var(--muted)}
+.ph code{color:var(--amber)}
+.fig{max-width:100%;border-radius:12px;display:block}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:12px}
+  .logo{display:none}nav{flex-direction:row}.nav{white-space:nowrap}.stat{display:none}
+}
+
+.main{max-width:1500px;margin:0 auto}
+.top{align-items:center}.top p{margin:4px 0 0;color:var(--muted)}
+.logo{padding:0}
+.chip.live{display:flex;align-items:center;gap:8px;color:#c9d4d7}
+.chip i{width:9px;height:9px;border-radius:50%;background:#43d98b;box-shadow:0 0 8px #43d98b;animation:pl 2s infinite}
+@keyframes pl{50%{opacity:.35}}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px}
+.kpi{padding:14px 16px}.kpi .v{font-size:30px}.kpi.hot .v{font-size:42px}
+.dash{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.c7{grid-column:span 7}.c5{grid-column:span 5}.c12{grid-column:span 12}
+.stack{grid-column:span 5;display:grid;gap:12px}
+@media(max-width:1000px){.c7,.c5,.stack{grid-column:span 12}}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.rock-telemetry{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px}
+.rock-card{padding:16px;border:1px solid rgba(79,209,197,.25);border-radius:12px;background:rgba(79,209,197,.04)}
+.rock-card h4{margin:0 0 10px;color:var(--teal)}.rock-card p{margin:6px 0;color:var(--muted)}
+.rock-card code{display:block;overflow-wrap:anywhere;white-space:normal;color:var(--amber);font-size:14px;margin-top:8px;line-height:1.7}
+.actions{flex-wrap:wrap}.sound-toggle{cursor:pointer;font-family:inherit}.sound-toggle[aria-pressed="true"]{border-color:var(--teal);color:var(--teal)}
+#radarHud{position:fixed;right:20px;bottom:20px;width:230px;height:255px;padding:12px;border:1px solid rgba(79,209,197,.65);border-radius:16px;background:rgba(3,14,18,.92);box-shadow:0 0 25px rgba(79,209,197,.15);z-index:3;pointer-events:none}
+#radarHud p{margin:0 0 6px;font-size:12px;letter-spacing:.1em;color:var(--teal)}#radarDisplay{width:100%;height:205px}
+.main{padding-bottom:285px}@media(max-width:600px){#radarHud{width:160px;height:185px;right:12px;bottom:12px}#radarDisplay{height:135px}.main{padding-bottom:210px}}
+.frame-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;max-height:520px;overflow:auto}.frame-gallery figure{margin:0}.frame-gallery figcaption{color:var(--muted);font-size:13px;margin-top:5px}
+.file-hidden{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.upload-zone{border:1px solid rgba(79,209,197,.3);border-radius:14px;padding:20px;background:linear-gradient(135deg,rgba(79,209,197,.09),rgba(255,180,84,.04))}
+.upload-empty{text-align:center;padding:18px}.upload-empty h4{font-size:22px;margin:8px 0}.upload-empty p,.upload-help{color:var(--muted)}.upload-symbol{color:var(--teal);font-size:42px}
+.upload-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px}.select-media{display:inline-block;border:1px solid var(--teal);border-radius:99px;padding:10px 20px;color:var(--teal);cursor:pointer;font-weight:600}.select-media:hover{background:rgba(79,209,197,.12)}
+.file-hidden:focus-visible~.upload-zone .select-media{outline:2px solid white;outline-offset:4px}.disabled,button:disabled{opacity:.5;cursor:default;pointer-events:none}
+.upload-help{text-align:center;font-size:13px;margin-bottom:0}.media-preview{display:flex;justify-content:center;background:#02090c;border-radius:12px;overflow:hidden}.media-preview video,.media-preview img{display:block;width:100%;max-height:420px;object-fit:contain}.media-info{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:14px}.media-info strong{overflow-wrap:anywhere;min-width:0}.media-info>span:last-child{color:var(--muted)}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas><aside id="radarHud" aria-label="Radar showing detected rock positions"><p>ROCK RADAR &middot; LIVE</p><canvas id="radarDisplay" width="410" height="410"></canvas></aside>
+<main class="main">
+  <header class="top">
+    <div><div class="logo">CRATER<span>&#10022;</span></div><p>Mission Dashboard · rock detection, localization &amp; model performance</p></div>
+    <div class="actions"><span class="chip live"><i></i>Backend status unknown</span><span class="chip" id="status">Awaiting backend</span><button class="chip sound-toggle" id="soundToggle" aria-pressed="false">Upload chime: Off</button><button class="go" id="sim">View rock telemetry</button></div>
+  </header>
+  <section id="view"></section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// One input drives all three notebook workflows. No fabricated records.
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let mission=null, backend=null, busy=false, error='', selectedFile=null, previewUrl='';
+const panel=(title,inner,extra='')=>`<div class="panel"><h3>${title}<em>${extra}</em></h3>${inner}</div>`;
+const kpi=(label,value,hot=false)=>`<div class="kpi${hot?' hot':''}"><div class="l">${label}</div><div class="v">${value}</div></div>`;
+const table=(cols,rows)=>`<div class="tw"><table><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+function mapSVG(hazards){
+ let out='<rect width="400" height="300" rx="10" fill="#0a1316" stroke="#1d2b30"/>';
+ for(let i=1;i<8;i++)out+=`<line x1="${i*50}" y1="0" x2="${i*50}" y2="300" stroke="#1d2b30"/>`;
+ for(let i=1;i<6;i++)out+=`<line x1="0" y1="${i*50}" x2="400" y2="${i*50}" stroke="#1d2b30"/>`;
+ // Map is centered on assumed rover origin; distances in estimated metres.
+ hazards.forEach(h=>{const x=Math.max(8,Math.min(392,200+h.x_m*5)),y=Math.max(8,Math.min(292,150-h.y_m*5));out+=`<circle cx="${x}" cy="${y}" r="7" fill="${h.confirmed?'#4fd1c5':'#ffb454'}"><title>${esc(h.cls)} (${h.x_m}, ${h.y_m}) metres; ${h.confirmed?'confirmed':'provisional'}</title></circle>`});
+ return `<svg viewBox="0 0 400 300" role="img" aria-label="Estimated hazard positions">${out}</svg>`;
+}
+function telemetryCards(tel){
+ if(!tel)return 'Waiting for localized rock coordinates';
+ const rocks=tel.rocks||[];
+ if(!rocks.length)return '<p>No localized rocks found in this image.</p>';
+ return `<p>${rocks.length} rock${rocks.length===1?'':'s'} localized &middot; Coordinates in estimated metres</p><div class="rock-telemetry">${rocks.map((r,i)=>`<article class="rock-card"><h4>Rock ${i+1} <span class="badge">ID ${esc(r.hazard_id)}</span></h4><p><strong>X:</strong> ${Number(r.x_m).toFixed(3)} m &nbsp; <strong>Y:</strong> ${Number(r.y_m).toFixed(3)} m</p></article>`).join('')}</div>`;
+}
+// Audio starts only after the listener activates the control.
+let spaceAudio=null, audioOn=false;
+function createSpaceAudio(){
+ const Context=window.AudioContext||window.webkitAudioContext;
+ if(!Context)throw Error('Audio unavailable');
+ const context=new Context(),master=context.createGain();master.gain.value=.22;master.connect(context.destination);
+ return {context,master};
+}
+function playSpaceChime(){
+ const {context,master}=spaceAudio,now=context.currentTime;
+ // A warm, brief major chord with a soft attack and no continuous drone.
+ [261.63,329.63,392].forEach((frequency,i)=>{
+  const oscillator=context.createOscillator(),gain=context.createGain(),start=now+i*.14;
+  oscillator.type='sine';oscillator.frequency.value=frequency;
+  gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.09,start+.12);gain.gain.exponentialRampToValueAtTime(.0001,start+1.5);
+  oscillator.connect(gain);gain.connect(master);oscillator.start(start);oscillator.stop(start+1.6);
+  oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
+ });
+}
+async function setSpaceSound(enabled){
+ try{
+  if(!spaceAudio)spaceAudio=createSpaceAudio();
+  if(enabled)await spaceAudio.context.resume();
+  audioOn=enabled;
+  spaceAudio.master.gain.setTargetAtTime(audioOn?.22:0,spaceAudio.context.currentTime,.08);
+  if(audioOn)playSpaceChime();
+  $('soundToggle').textContent=`Upload chime: ${audioOn?'On':'Off'}`;
+  $('soundToggle').setAttribute('aria-pressed',String(audioOn));
+ }catch(e){$('soundToggle').textContent='Sound unavailable';}
+}
+$('soundToggle').onclick=()=>setSpaceSound(!audioOn);
+document.addEventListener('visibilitychange',()=>{if(spaceAudio)spaceAudio.master.gain.setTargetAtTime(audioOn&&!document.hidden?.22:0,spaceAudio.context.currentTime,.08);});
+function uploadContent(){
+ const video=selectedFile&&(selectedFile.type==='video/mp4'||selectedFile.name.toLowerCase().endsWith('.mp4'));
+ return `<form id="missionForm"><input id="missionFile" class="file-hidden" type="file" name="file" accept="image/png,image/jpeg,image/webp,video/mp4,.mp4" ${busy?'disabled':''}><div class="upload-zone ${selectedFile?'has-media':''}">${selectedFile?`<div class="media-preview">${video?`<video controls playsinline preload="metadata" src="${esc(previewUrl)}" aria-label="Selected video preview"></video>`:`<img src="${esc(previewUrl)}" alt="Selected image preview">`}</div><div class="media-info"><span class="badge">${video?'VIDEO':'IMAGE'} READY</span><strong>${esc(selectedFile.name)}</strong><span>${(selectedFile.size/1024/1024).toFixed(1)} MB</span></div>`:`<div class="upload-empty"><span class="upload-symbol" aria-hidden="true">&#8853;</span><h4>Begin your lunar mission</h4><p>Select an image or a short MP4 to explore detected rocks.</p></div>`}<div class="upload-actions"><label class="select-media ${busy?'disabled':''}" for="missionFile" ${busy?'aria-disabled="true"':''}>${selectedFile?'Replace media':'Select image or video'}</label><button class="go" ${busy||!selectedFile?'disabled':''}>${busy?'Analyzing mission...':'Analyze mission'}</button></div><p class="upload-help">JPG, PNG, WebP &middot; MP4 up to 30 seconds / 40 MB</p></div></form>`;
+}
+function draw(){
+ const d=mission?.detections||[], loc=mission?.localization, haz=loc?.hazards||[], tel=mission?.telemetry;
+ $('sim').style.display='none';
+ $('view').innerHTML=`<div class="kpis">${kpi('Detections',mission?d.length:'—',true)}${kpi('Projected hazards',mission?haz.length:'—')}${kpi('Confirmed events',loc?loc.confirmed_events:'—')}${kpi('Rock telemetry',tel?`${tel.rocks?.length||0} rocks`:'Not run')}</div>
+ <div class="dash"><div class="c12">${panel('Mission control',`${uploadContent()}<p role="status">${esc(error || (backend?.model_available?'Mission systems ready. Select your media to begin.':'Detection model unavailable.'))}</p>`)}</div>
+ <div class="c7">${panel('1 · Perception',mission?`<img class="fig" src="${mission.image}" alt="Real YOLO annotated image">${mission.input_type==='video'?`<p>${mission.frames.length} extracted frames &middot; ${mission.sample_fps} frames/second</p><div class="frame-gallery">${mission.frames.map(f=>`<figure><img class="fig" loading="lazy" src="${f.image}" alt="Annotated video frame at ${f.timestamp} seconds"><figcaption>${f.timestamp.toFixed(2)} s &middot; ${f.detections} detections</figcaption></figure>`).join('')}</div>`:''}<p>${d.length} detections · ${mission.elapsed_ms} ms · ${esc(mission.model)}</p>`:'Waiting for image or video')}</div>
+ <div class="c5">${panel('2 · Localization',loc?`<p>${esc(loc.calibration)}</p><p>${loc.projected_observations} projected observations; ${loc.confirmed_events} confirmed events. Requires ${loc.min_observations_to_confirm} sightings per hazard.</p>${mapSVG(haz)}`:'Waiting for detections')}</div>
+ <div class="c12">${panel('3 &middot; Rock telemetry',telemetryCards(tel))}</div>
+ <div class="c12">${panel('Image-derived hazards',haz.length?table(['Class','X (estimated m)','Y (estimated m)','Confidence','Status'],haz.map(h=>[h.cls,h.x_m,h.y_m,h.confidence,h.confirmed?'Confirmed':'Provisional'])):'No projected hazards')}</div></div>`;
+ $('missionForm').onsubmit=runMission;
+ $('missionFile').onchange=e=>{
+  const file=e.target.files[0];if(!file)return;
+  if(previewUrl)URL.revokeObjectURL(previewUrl);
+  selectedFile=file;previewUrl=URL.createObjectURL(file);mission=null;error='';
+  setSpaceSound(true);draw();
+ };
+}
+async function runMission(e){e.preventDefault();if(busy)return;if(!selectedFile)return;const fd=new FormData();fd.append('file',selectedFile);busy=true;error='';draw();try{const response=await fetch('/api/mission',{method:'POST',body:fd});const body=await response.json();if(!response.ok)throw Error(body.detail||'Mission failed');mission=body;error=body.input_type==='video'?`Video completed: ${body.frames.length} frames analyzed.`:'Mission completed using the uploaded image.';}catch(err){mission=null;error=err.message;}finally{busy=false;draw();}}
+(async()=>{try{const r=await fetch('/api/status');backend=await r.json();$('status').textContent='API connected';}catch(e){$('status').textContent='API offline';}draw();})();
+
+// Visible radar readout remains available even if the 3D library is offline.
+const radarCanvas=$('radarDisplay'),radarContext=radarCanvas.getContext('2d');
+const radarReducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function drawRadar(time){
+ const ctx=radarContext,c=205,radius=180,angle=radarReducedMotion?-.7:time*.00035;
+ ctx.clearRect(0,0,410,410);ctx.fillStyle='#04171b';ctx.beginPath();ctx.arc(c,c,radius,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='rgba(79,209,197,.5)';ctx.lineWidth=2;
+ [45,90,135,180].forEach(r=>{ctx.beginPath();ctx.arc(c,c,r,0,Math.PI*2);ctx.stroke();});
+ ctx.beginPath();ctx.moveTo(c-radius,c);ctx.lineTo(c+radius,c);ctx.moveTo(c,c-radius);ctx.lineTo(c,c+radius);ctx.stroke();
+ for(let i=0;i<40;i++){ctx.strokeStyle=`rgba(79,209,197,${.65*(1-i/40)})`;ctx.beginPath();ctx.moveTo(c,c);ctx.lineTo(c+radius*Math.cos(angle-i*.015),c+radius*Math.sin(angle-i*.015));ctx.stroke();}
+ const rocks=mission?.telemetry?.rocks||[],range=Math.max(1,...rocks.map(r=>Math.hypot(r.x_m,r.y_m)));
+ rocks.forEach((rock,i)=>{const x=c+rock.y_m/range*160,y=c-rock.x_m/range*160;ctx.shadowColor='#ffb454';ctx.shadowBlur=16;ctx.fillStyle='#ffb454';ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.font='18px system-ui';ctx.fillText(String(i+1),x+10,y-8);});
+ ctx.fillStyle='#b9eae6';ctx.font='16px system-ui';ctx.fillText(rocks.length?`${rocks.length} rocks / range ${range.toFixed(1)} m`:'Waiting for image or video',24,400);
+ requestAnimationFrame(drawRadar);
+}
+requestAnimationFrame(drawRadar);
+
+// ---- 3D BACKGROUND: amber-lit nebula with drifting asteroids ----
+try{
+  const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('bg'),antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.setClearColor(0x04080a,1);
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0x04080a,22,70);
+  const camera=new THREE.PerspectiveCamera(55,1,.1,200);
+  camera.position.set(0,0,10);
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+
+  // nebula backdrop (dark teal + glowing amber filaments)
+  const nc=document.createElement('canvas');nc.width=2048;nc.height=1024;const g=nc.getContext('2d');
+  const bg=g.createLinearGradient(0,0,2048,1024);bg.addColorStop(0,'#03090c');bg.addColorStop(.45,'#0b2228');bg.addColorStop(1,'#050c0f');g.fillStyle=bg;g.fillRect(0,0,2048,1024);
+  g.globalCompositeOperation='lighter';
+  for(let i=0;i<45;i++){const x=rnd(0,2048),y=rnd(0,1024),r=rnd(120,380);const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(40,120,130,.16)');gr.addColorStop(1,'rgba(40,120,130,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}
+  const core=g.createRadialGradient(1300,520,0,1300,520,520);core.addColorStop(0,'rgba(255,170,70,.55)');core.addColorStop(.35,'rgba(230,110,30,.22)');core.addColorStop(1,'rgba(230,110,30,0)');g.fillStyle=core;g.fillRect(0,0,2048,1024);
+  g.shadowColor='rgba(255,140,40,.9)';g.shadowBlur=14;g.lineCap='round';
+  for(let k=0;k<70;k++){let x=rnd(900,2048),y=rnd(150,900);g.strokeStyle='rgba(255,'+Math.floor(rnd(120,190))+',50,'+rnd(.25,.7)+')';g.lineWidth=rnd(1,3);g.beginPath();g.moveTo(x,y);
+    for(let s=0;s<14;s++){x+=rnd(-40,40);y+=rnd(-35,35);g.lineTo(x,y);}g.stroke();}
+  g.shadowBlur=0;
+  for(let i=0;i<700;i++){g.fillStyle='rgba(255,240,220,'+rnd(.25,.9)+')';const s=Math.random()<.04?3:1.5;g.fillRect(rnd(0,2048),rnd(0,1024),s,s);}
+  const nt=new THREE.CanvasTexture(nc);nt.encoding=THREE.sRGBEncoding;
+  const wall=new THREE.Mesh(new THREE.PlaneGeometry(120,60),new THREE.MeshBasicMaterial({map:nt,fog:false}));wall.position.z=-40;scene.add(wall);
+
+  // lights: warm amber from the right, cool teal from the left
+  scene.add(new THREE.AmbientLight(0x2c4a52,.9));
+  const warm=new THREE.DirectionalLight(0xffa24a,2.6);warm.position.set(10,3,6);scene.add(warm);
+  const cool=new THREE.DirectionalLight(0x4aa6b0,1.1);cool.position.set(-8,4,5);scene.add(cool);
+
+  // Holographic radar in the existing 3D scene.
+  const radar=new THREE.Group();radar.position.set(4,1,-5);radar.rotation.x=-.12;scene.add(radar);
+  const radarMaterial=new THREE.LineBasicMaterial({color:0x4fd1c5,transparent:true,opacity:.7,depthWrite:false});
+  [1.5,3,4.5,6].forEach(radius=>{
+    const points=Array.from({length:97},(_,i)=>new THREE.Vector3(Math.cos(i/96*Math.PI*2)*radius,Math.sin(i/96*Math.PI*2)*radius,0));
+    radar.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points),radarMaterial));
+  });
+  [[-6,0,6,0],[0,-6,0,6]].forEach(([x1,y1,x2,y2])=>radar.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1,y1,0),new THREE.Vector3(x2,y2,0)]),radarMaterial)));
+  const sweep=new THREE.Group();radar.add(sweep);
+  for(let i=0;i<24;i++){
+    const angle=-i*.018;
+    sweep.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3(6*Math.cos(angle),6*Math.sin(angle),0)]),new THREE.LineBasicMaterial({color:0x4fd1c5,transparent:true,opacity:.6*(1-i/24),depthWrite:false})));
+  }
+  const radarBlips=[];
+  let radarMission=null;
+  function updateRadar(){
+    if(radarMission===mission)return;
+    radarMission=mission;
+    radarBlips.forEach(b=>{radar.remove(b);b.geometry.dispose();b.material.dispose();});radarBlips.length=0;
+    const rocks=mission?.telemetry?.rocks||[];
+    const range=Math.max(1,...rocks.map(r=>Math.hypot(r.x_m,r.y_m)));
+    rocks.forEach(r=>{const dot=new THREE.Mesh(new THREE.SphereGeometry(.16,8,8),new THREE.MeshBasicMaterial({color:0xffb454,transparent:true,opacity:.9}));dot.position.set(r.y_m/range*5.5,r.x_m/range*5.5,.05);radar.add(dot);radarBlips.push(dot);});
+  }
+
+  // asteroids
+  function makeRock(r){
+    const geo=new THREE.IcosahedronGeometry(r,1);const p=geo.attributes.position;
+    for(let i=0;i<p.count;i++){const k=rnd(.72,1.25);p.setXYZ(i,p.getX(i)*k*rnd(.9,1.1),p.getY(i)*k,p.getZ(i)*k*rnd(.9,1.1));}
+    geo.computeVertexNormals();
+    return new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x34312f,roughness:1,metalness:.05,flatShading:true}));
+  }
+  const field=[];
+  for(let i=0;i<55;i++){
+    const m=makeRock(rnd(.15,1.1));
+    m.position.set(rnd(-24,24),rnd(-13,13),rnd(-30,3));
+    if(Math.abs(m.position.x)<5&&m.position.z>-2)m.position.x+=10;
+    m.userData={rx:rnd(-.2,.2),ry:rnd(-.2,.2),dx:rnd(-.04,.04)};
+    scene.add(m);field.push(m);
+  }
+
+  // amber dust
+  const N=600,pos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){pos[i*3]=rnd(-30,30);pos[i*3+1]=rnd(-16,16);pos[i*3+2]=rnd(-30,5);}
+  const dg=new THREE.BufferGeometry();dg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const dust=new THREE.Points(dg,new THREE.PointsMaterial({color:0xffb454,size:.09,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));scene.add(dust);
+
+  // soft glowing orbs
+  const gc=document.createElement('canvas');gc.width=gc.height=128;const gg=gc.getContext('2d');
+  const gr2=gg.createRadialGradient(64,64,0,64,64,64);gr2.addColorStop(0,'rgba(255,255,255,1)');gr2.addColorStop(.25,'rgba(255,255,255,.35)');gr2.addColorStop(1,'rgba(255,255,255,0)');gg.fillStyle=gr2;gg.fillRect(0,0,128,128);
+  const gtex=new THREE.CanvasTexture(gc);
+  [[-7,3.5,-6,.9],[6,5,-12,1.1],[-12,-3,-14,1.4],[11,-4,-8,.7]].forEach(o=>{
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:gtex,color:0xffb060,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.8,fog:false}));
+    s.scale.set(o[3]*3,o[3]*3,1);s.position.set(o[0],o[1],o[2]);scene.add(s);});
+
+  function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  addEventListener('resize',resize);resize();
+  const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function frame(){
+    updateRadar();
+    if(!still){
+      field.forEach(m=>{m.rotation.x+=m.userData.rx*.004;m.rotation.y+=m.userData.ry*.004;m.position.x+=m.userData.dx*.01;if(m.position.x>26)m.position.x=-26;if(m.position.x<-26)m.position.x=26;});
+      dust.rotation.y+=.0002;
+      sweep.rotation.z=-performance.now()*.0005;
+      radarBlips.forEach(dot=>{const angle=Math.atan2(dot.position.y,dot.position.x);const delta=((sweep.rotation.z-angle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);dot.material.opacity=.25+.75*Math.exp(-delta*2);});
+    }
+    renderer.render(scene,camera);requestAnimationFrame(frame);
+  }
+  frame();
+}catch(e){console.warn('3D background unavailable',e);}
+</script>
+</body>
+</html>
